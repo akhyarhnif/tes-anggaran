@@ -1,0 +1,381 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+.wrap { padding: 1.5rem 0; }
+
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px; }
+.title-area h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.title-area p { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.metric .lbl { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.metric .val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric .val.danger { color: var(--color-text-danger); }
+.metric .val.warn { color: var(--color-text-warning); }
+.metric .val.ok { color: var(--color-text-success); }
+
+.table-wrap { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1.5rem; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--color-background-secondary); padding: 10px 14px; text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+thead th:not(:first-child) { text-align: right; }
+tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--color-background-secondary); }
+tbody td { padding: 11px 14px; color: var(--color-text-primary); }
+tbody td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+
+.item-name { display: flex; align-items: center; gap: 8px; }
+.status-badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
+.badge-ok { background: #EAF3DE; color: #3B6D11; }
+.badge-warn { background: #FAEEDA; color: #854F0B; }
+.badge-over { background: #FCEBEB; color: #A32D2D; }
+.badge-lock { background: #EEEDFE; color: #3C3489; }
+.badge-req { background: #E6F1FB; color: #185FA5; }
+
+@media (prefers-color-scheme: dark) {
+  .badge-ok { background: #27500A; color: #C0DD97; }
+  .badge-warn { background: #633806; color: #FAC775; }
+  .badge-over { background: #501313; color: #F7C1C1; }
+  .badge-lock { background: #3C3489; color: #CECBF6; }
+  .badge-req { background: #0C447C; color: #B5D4F4; }
+}
+
+.progress-bar { background: var(--color-background-secondary); border-radius: 4px; height: 6px; overflow: hidden; min-width: 80px; display: inline-block; vertical-align: middle; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.fill-ok { background: #639922; }
+.fill-warn { background: #BA7517; }
+.fill-over { background: #E24B4A; }
+.fill-lock { background: #534AB7; }
+
+.action-btn { font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; color: var(--color-text-primary); white-space: nowrap; }
+.action-btn:hover { background: var(--color-background-secondary); }
+.action-btn.primary { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.add-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; color: var(--color-text-primary); }
+.add-btn:hover { background: var(--color-background-secondary); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.5rem; width: 380px; max-width: 90vw; }
+.modal h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+.modal p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.25rem; }
+.form-group { margin-bottom: 12px; }
+.form-group label { font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 5px; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; font-family: var(--font-sans); }
+.form-group textarea { resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+.btn-cancel { padding: 8px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; font-size: 13px; color: var(--color-text-primary); }
+.btn-submit { padding: 8px 16px; border-radius: var(--border-radius-md); border: none; background: #178044; color: #fff; cursor: pointer; font-size: 13px; font-weight: 500; }
+.btn-submit:hover { background: #0F6E56; }
+
+.hist-section { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+.hist-header { background: var(--color-background-secondary); padding: 10px 14px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+.hist-item { padding: 10px 14px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.hist-item:last-child { border-bottom: none; }
+.hist-item .hi-left .name { font-weight: 500; font-size: 13px; color: var(--color-text-primary); }
+.hist-item .hi-left .desc { color: var(--color-text-secondary); margin-top: 2px; }
+.hist-item .hi-right { text-align: right; white-space: nowrap; }
+.hist-item .hi-right .amount { font-weight: 500; color: var(--color-text-primary); }
+.hist-item .hi-right .date { color: var(--color-text-secondary); margin-top: 2px; }
+.empty-hist { padding: 20px 14px; text-align: center; font-size: 13px; color: var(--color-text-secondary); }
+
+.approve-btn { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); border: none; cursor: pointer; margin-left: 4px; }
+.approve-btn.yes { background: #EAF3DE; color: #3B6D11; }
+.approve-btn.no { background: #FCEBEB; color: #A32D2D; }
+@media (prefers-color-scheme: dark) {
+  .approve-btn.yes { background: #27500A; color: #C0DD97; }
+  .approve-btn.no { background: #501313; color: #F7C1C1; }
+}
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 20px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); z-index: 200; transition: opacity 0.3s; }
+</style>
+
+<div class="wrap">
+  <h2 class="sr-only" style="position:absolute;left:-9999px">Sistem manajemen anggaran vs aktual</h2>
+
+  <div class="top-bar">
+    <div class="title-area">
+      <h2>Manajemen Anggaran</h2>
+      <p>Pantau realisasi biaya terhadap anggaran yang ditetapkan</p>
+    </div>
+    <button class="add-btn" onclick="openAddItem()">
+      <i class="ti ti-plus" aria-hidden="true"></i> Tambah Item
+    </button>
+  </div>
+
+  <div class="metrics" id="metrics"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%">Item Anggaran</th>
+          <th>Anggaran</th>
+          <th>Terpakai</th>
+          <th>Sisa</th>
+          <th>Realisasi</th>
+          <th>Status</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="budget-body"></tbody>
+    </table>
+  </div>
+
+  <div class="hist-section">
+    <div class="hist-header">Riwayat Pengajuan Tambahan Anggaran</div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<div id="modal" style="display:none"></div>
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+let items = [
+  { id:1, name:'Operasional Kantor', category:'Umum', budget:15000000, actual:12500000, locked:false, requests:[] },
+  { id:2, name:'Pemasaran & Iklan', category:'Marketing', budget:20000000, actual:21800000, locked:true, requests:[] },
+  { id:3, name:'Pengembangan IT', category:'Teknologi', budget:35000000, actual:28000000, locked:false, requests:[] },
+  { id:4, name:'SDM & Rekrutmen', category:'HR', budget:10000000, actual:8200000, locked:false, requests:[] },
+  { id:5, name:'Perjalanan Dinas', category:'Umum', budget:8000000, actual:9100000, locked:true, requests:[] },
+];
+let requests = [];
+let nextId = 6;
+
+const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const pct = (a,b) => b === 0 ? 0 : Math.min((a/b)*100, 999);
+
+function getStatus(item) {
+  if (item.locked) return { label:'Terkunci', cls:'badge-lock', fcls:'fill-lock' };
+  const p = pct(item.actual, item.budget);
+  if (p >= 100) return { label:'Melebihi', cls:'badge-over', fcls:'fill-over' };
+  if (p >= 80) return { label:'Hampir Habis', cls:'badge-warn', fcls:'fill-warn' };
+  return { label:'Aman', cls:'badge-ok', fcls:'fill-ok' };
+}
+
+function checkAndLock() {
+  items.forEach(item => {
+    if (!item.locked && item.actual >= item.budget) {
+      item.locked = true;
+    }
+  });
+}
+
+function render() {
+  checkAndLock();
+  renderMetrics();
+  renderTable();
+  renderHistory();
+}
+
+function renderMetrics() {
+  const totalBudget = items.reduce((s,i) => s+i.budget, 0);
+  const totalActual = items.reduce((s,i) => s+i.actual, 0);
+  const locked = items.filter(i => i.locked).length;
+  const overPct = totalBudget > 0 ? ((totalActual/totalBudget)*100).toFixed(1) : '0.0';
+  const sisa = totalBudget - totalActual;
+  const pctNum = parseFloat(overPct);
+  const pctCls = pctNum >= 100 ? 'danger' : pctNum >= 80 ? 'warn' : 'ok';
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="lbl">Total Anggaran</div><div class="val">${fmt(totalBudget)}</div></div>
+    <div class="metric"><div class="lbl">Total Terpakai</div><div class="val ${pctCls}">${fmt(totalActual)}</div></div>
+    <div class="metric"><div class="lbl">Sisa Anggaran</div><div class="val ${sisa < 0 ? 'danger' : 'ok'}">${fmt(sisa)}</div></div>
+    <div class="metric"><div class="lbl">% Realisasi</div><div class="val ${pctCls}">${overPct}%</div></div>
+    <div class="metric"><div class="lbl">Item Terkunci</div><div class="val ${locked > 0 ? 'danger' : 'ok'}">${locked} item</div></div>
+  `;
+}
+
+function renderTable() {
+  const body = document.getElementById('budget-body');
+  body.innerHTML = items.map(item => {
+    const st = getStatus(item);
+    const p = Math.min(pct(item.actual, item.budget), 100);
+    const sisa = item.budget - item.actual;
+    const pendingReq = requests.filter(r => r.itemId === item.id && r.status === 'pending').length;
+    const approvedReq = requests.filter(r => r.itemId === item.id && r.status === 'approved').length;
+
+    let aksiHtml = '';
+    if (item.locked) {
+      if (pendingReq > 0) {
+        aksiHtml = `<span class="status-badge badge-req"><i class="ti ti-clock" aria-hidden="true"></i> Menunggu (${pendingReq})</span>`;
+      } else {
+        aksiHtml = `<button class="action-btn primary" onclick="openRequest(${item.id})"><i class="ti ti-send" aria-hidden="true"></i> Ajukan Tambahan</button>`;
+      }
+    } else {
+      aksiHtml = `<button class="action-btn" onclick="openAddActual(${item.id})"><i class="ti ti-plus" aria-hidden="true"></i> Input Aktual</button>`;
+    }
+
+    return `<tr>
+      <td>
+        <div class="item-name">
+          <div>
+            <div style="font-weight:500;font-size:13px">${item.name}</div>
+            <div style="font-size:11px;color:var(--color-text-secondary)">${item.category}</div>
+          </div>
+        </div>
+      </td>
+      <td>${fmt(item.budget)}</td>
+      <td style="color:${item.actual > item.budget ? 'var(--color-text-danger)' : 'var(--color-text-primary)'}">${fmt(item.actual)}</td>
+      <td style="color:${sisa < 0 ? 'var(--color-text-danger)' : 'var(--color-text-success)'}">${fmt(sisa)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress-bar" style="width:70px"><div class="progress-fill ${st.fcls}" style="width:${p}%"></div></div>
+          <span style="font-size:12px;color:var(--color-text-secondary)">${Math.round(p)}%</span>
+        </div>
+      </td>
+      <td><span class="status-badge ${st.cls}">${st.label}</span></td>
+      <td>${aksiHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHistory() {
+  const el = document.getElementById('hist-list');
+  if (requests.length === 0) {
+    el.innerHTML = '<div class="empty-hist">Belum ada pengajuan tambahan anggaran</div>';
+    return;
+  }
+  el.innerHTML = requests.slice().reverse().map(r => {
+    const item = items.find(i => i.id === r.itemId);
+    const stMap = { pending: ['badge-req','Menunggu Persetujuan'], approved: ['badge-ok','Disetujui'], rejected: ['badge-over','Ditolak'] };
+    const [cls, lbl] = stMap[r.status];
+    const approveHtml = r.status === 'pending' ? `
+      <div style="margin-top:6px">
+        <button class="approve-btn yes" onclick="approveReq('${r.id}', true)">Setujui</button>
+        <button class="approve-btn no" onclick="approveReq('${r.id}', false)">Tolak</button>
+      </div>` : '';
+    return `<div class="hist-item">
+      <div class="hi-left">
+        <div class="name">${item ? item.name : '—'}</div>
+        <div class="desc">${r.reason}</div>
+        ${approveHtml}
+      </div>
+      <div class="hi-right">
+        <div class="amount">+${fmt(r.amount)}</div>
+        <div class="date">${r.date}</div>
+        <div style="margin-top:3px"><span class="status-badge ${cls}">${lbl}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => { t.style.display = 'none'; }, 300); }, 2800);
+}
+
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+function openAddItem() {
+  document.getElementById('modal').style.display = 'block';
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>Tambah Item Anggaran</h3>
+        <p>Masukkan nama dan jumlah anggaran untuk item baru</p>
+        <div class="form-group"><label>Nama Item</label><input id="f-name" placeholder="cth. Operasional Gudang" /></div>
+        <div class="form-group"><label>Kategori</label>
+          <select id="f-cat">
+            <option>Umum</option><option>Marketing</option><option>Teknologi</option><option>HR</option><option>Keuangan</option><option>Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Jumlah Anggaran (Rp)</label><input id="f-budget" type="number" placeholder="0" /></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button class="btn-submit" onclick="submitAddItem()">Simpan</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function submitAddItem() {
+  const name = document.getElementById('f-name').value.trim();
+  const cat = document.getElementById('f-cat').value;
+  const budget = parseFloat(document.getElementById('f-budget').value);
+  if (!name || isNaN(budget) || budget <= 0) { showToast('Lengkapi semua kolom dengan benar'); return; }
+  items.push({ id: nextId++, name, category: cat, budget, actual: 0, locked: false, requests: [] });
+  closeModal(); render(); showToast('Item anggaran berhasil ditambahkan');
+}
+
+function openAddActual(id) {
+  const item = items.find(i => i.id === id);
+  document.getElementById('modal').style.display = 'block';
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>Input Biaya Aktual</h3>
+        <p>${item.name} — Sisa anggaran: ${fmt(item.budget - item.actual)}</p>
+        <div class="form-group"><label>Tambah Biaya Aktual (Rp)</label><input id="f-actual" type="number" placeholder="0" /></div>
+        <div class="form-group"><label>Keterangan</label><input id="f-keterangan" placeholder="cth. Pembayaran vendor bulan Juni" /></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button class="btn-submit" onclick="submitActual(${id})">Simpan</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function submitActual(id) {
+  const val = parseFloat(document.getElementById('f-actual').value);
+  if (isNaN(val) || val <= 0) { showToast('Masukkan jumlah biaya yang valid'); return; }
+  const item = items.find(i => i.id === id);
+  item.actual += val;
+  if (item.actual >= item.budget) {
+    item.locked = true;
+    closeModal(); render(); showToast('⚠ Anggaran terlampaui — item dikunci otomatis');
+  } else {
+    closeModal(); render(); showToast('Biaya aktual berhasil dicatat');
+  }
+}
+
+function openRequest(id) {
+  const item = items.find(i => i.id === id);
+  const over = item.actual - item.budget;
+  document.getElementById('modal').style.display = 'block';
+  document.getElementById('modal').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>Pengajuan Tambahan Anggaran</h3>
+        <p>${item.name} — Kelebihan saat ini: <strong>${fmt(over)}</strong>. Ajukan tambahan anggaran untuk melanjutkan.</p>
+        <div class="form-group"><label>Jumlah Tambahan yang Diajukan (Rp)</label><input id="f-req-amount" type="number" placeholder="0" /></div>
+        <div class="form-group"><label>Alasan Pengajuan</label><textarea id="f-req-reason" placeholder="Jelaskan alasan kebutuhan tambahan anggaran..."></textarea></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button class="btn-submit" onclick="submitRequest(${id})">Kirim Pengajuan</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function submitRequest(id) {
+  const amount = parseFloat(document.getElementById('f-req-amount').value);
+  const reason = document.getElementById('f-req-reason').value.trim();
+  if (isNaN(amount) || amount <= 0 || !reason) { showToast('Lengkapi semua kolom'); return; }
+  const now = new Date();
+  const date = now.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  requests.push({ id: 'req-' + Date.now(), itemId: id, amount, reason, date, status: 'pending' });
+  closeModal(); render(); showToast('Pengajuan berhasil dikirim — menunggu persetujuan');
+}
+
+function approveReq(reqId, approved) {
+  const req = requests.find(r => r.id === reqId);
+  if (!req) return;
+  req.status = approved ? 'approved' : 'rejected';
+  if (approved) {
+    const item = items.find(i => i.id === req.itemId);
+    item.budget += req.amount;
+    if (item.actual < item.budget) item.locked = false;
+  }
+  render();
+  showToast(approved ? 'Pengajuan disetujui — anggaran ditambahkan & kunci dibuka' : 'Pengajuan ditolak');
+}
+
+render();
+</script>
